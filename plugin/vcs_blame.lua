@@ -1,8 +1,9 @@
-local api = vim.api
+if not vim.fn.executable("git") then return end
 
 local is_git_repo = vim.uv.fs_stat(assert(vim.uv.cwd()) .. "/.git") ~= nil
 if not is_git_repo then return end
 
+local api = vim.api
 local line_blame_group = api.nvim_create_augroup("sagg0t.current_line_blame", { clear = true })
 local line_blame_ns = api.nvim_create_namespace("sagg0t.current_line_blame")
 
