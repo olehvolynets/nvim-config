@@ -1,7 +1,7 @@
 local u = require("sigma.util")
 COLORU = u
 
-local colors = require("sigma.palette.v2")
+local colors = require("sigma.palette.v3")
 
 colors.none = "NONE"
 colors.white = "#ffffff"
