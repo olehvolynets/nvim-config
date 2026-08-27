@@ -29,7 +29,7 @@ api.nvim_create_autocmd("FileType", {
 api.nvim_create_autocmd("FileType", {
     group = api.nvim_create_augroup("sagg0t.close_with_q", { clear = true }),
     desc = "Close with <q>",
-    pattern = { "git", "help", "man", "qf", "scratch" },
+    pattern = { "git", "help", "man", "qf", "scratch", "directory" },
     callback = function(args)
         vim.keymap.set("n", "q", "<cmd>quit<cr>", { buf = args.buf })
     end,

@@ -10,8 +10,9 @@ local uncategorised = {
     }
 }
 
-theme.groups = vim.tbl_extend('force', uncategorised,
+theme.groups = vim.tbl_extend("force", uncategorised,
     require("sigma.theme.base"),
+    require("sigma.theme.dir"),
     require("sigma.theme.lang_overrides"),
     require("sigma.theme.treesitter"),
     require("sigma.theme.lsp"),

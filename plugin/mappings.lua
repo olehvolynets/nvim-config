@@ -5,7 +5,7 @@ local map = vim.keymap.set
 
 map("n", "<Esc>", ":nohlsearch<CR>", default_opts)
 
-map("n", "<C-p>", ":Explore<CR>", default_opts)
+map("n", "<C-p>", "<Plug>(nvim-dir-up)")
 
 map("n", "<M-h>", "<<")
 map("n", "<M-j>", ":m .+1<CR>==")
