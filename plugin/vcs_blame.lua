@@ -62,11 +62,14 @@ local function parse_blame(output)
 
     for i = 2, #lines - 1 do
         local line = lines[i]
-        local key_end = string.find(line, " ", 1, true) - 1
-        local key = string.sub(line, 1, key_end)
+        local key_end = string.find(line, " ", 1, true)
+        -- Sometimes can be a single word e.g. initial commit will have "boundary" as a line of parent commit.
+        if key_end then
+            local key = string.sub(line, 1, key_end - 1)
 
-        local value = string.sub(line, #key + 2)
-        details[key] = assert(value)
+            local value = string.sub(line, #key + 2)
+            details[key] = assert(value)
+        end
     end
 
     if details.commit ~= "0000000000000000000000000000000000000000" then
