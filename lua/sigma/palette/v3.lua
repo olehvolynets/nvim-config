@@ -10,35 +10,34 @@ return {
         fg = "#747578",
 
         bg = "#0c0c0c",
-        bgTinted = "#161c1c", -- deadCyan
+        bgTinted = "#161c1c",
 
-        selection = "#341827", -- darkPink
+        selection = "#341827",
 
         accent = "#178c94",
-        accentDark = "#115f57", -- darkCyan
+        accentDark = "#115f57",
     },
 
-    -- search = "#6bae86", -- green
+    -- search = "#6bae86",
+    -- search2 = "#57d7e3",
     search = "#c0fe04",
-    search2 = "#57d7e3",
-    search3 = "#fe04be",
+    replace = "#CC6775",
 
-    comment =  "#686868", -- invisibleGrey
-    commentHighlight =  "#787878", -- invisibleGrey
-    keyword =  "#CC6775", -- pinkNeon
-    operator =  "#a1bebf", -- bleachedCyan
+    comment =  "#686868",
+    commentHighlight =  "#787878",
+    keyword =  "#CC6775",
+    operator =  "#a1bebf",
     variable = "#d4d8c0", -- fg
-    constant = "#91AF74", -- olive
-    property =  "#81AEB7", -- lightBlue
-    propertyAlt =  "#d16d9e", -- pinkWarm
-    attribue =  "#d16d9e", -- pinkWarm TODO
-    module = "#A89753", -- goldenrod
-    proc =  "#4C998D", -- lightCyan
-    tag = "#569cd6", -- darkBlue
+    constant = "#91AF74",
+    property =  "#81AEB7",
+    propertyAlt =  "#d16d9e",
+    module = "#A89753",
+    proc =  "#4C998D",
+    tag = "#569cd6",
 
-    type = "#5f87af", -- blueIce
-    number =  "#d68eb2", -- pinkDimmed
-    boolean =  "#9A80E2", -- purple
-    string = "#E6D68A", -- lightYellow,
-    stringSpecial = "#DB905E", -- orange
+    type = "#5f87af",
+    number =  "#d68eb2",
+    boolean =  "#9A80E2",
+    string = "#E6D68A",
+    stringSpecial = "#DB905E",
 }
