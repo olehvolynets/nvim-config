@@ -34,7 +34,7 @@ vim.lsp.enable({
     "clangd",
     "cssls",
     -- "dockerls",
-    "eslint",
+    -- "eslint",
     "gopls",
     "html",
     -- "htmx",
