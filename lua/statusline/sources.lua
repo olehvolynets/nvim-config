@@ -1,29 +1,36 @@
 local M = {}
 local fnamemodify = vim.fn.fnamemodify
+local fs = vim.fs
 
 local stl_bg = vim.api.nvim_get_hl(0, { name = "StatusLine" }).bg or "#000000"
 
 function M.fileinfo()
     return {
         stl = function()
-            local s = { "%t" }
+            local path = vim.api.nvim_buf_get_name(0)
+            local root = vim.fn.getcwd(-1, -1, -1)
+            local rel_path = fs.relpath(root, path) or path
+            local dir, file ---@type string, string
 
-            if vim.bo.modified then
-                s[#s + 1] = "%m"
+            local stat = vim.uv.fs_stat(path) or {}
+            if stat.type == "directory" then
+                dir = rel_path
+                file = ""
+            else
+                dir = fs.dirname(rel_path) .. "/"
+                file = vim.fs.basename(rel_path)
             end
 
-            if vim.bo.readonly then
-                s[#s + 1] = "%r"
-            end
+            local path_format = string.format("%%#Directory#%s%%*%s", dir, file)
 
-            return table.concat(s, " ")
+            return path_format .. " %h%w%m%r"
         end,
         name = "fileinfo",
-        event = { "BufEnter", "OptionSet", "FileChangedRO" },
         attr = {
             bold = true,
             bg = stl_bg,
         },
+        event = { "BufEnter" },
     }
 end
 
@@ -38,8 +45,7 @@ local ft_alias = {
     ["nvim-debugger.variables-widget"] = "DBG Variables",
     ["nvim-debugger.watch-widget"] = "DBG Watches",
     ["nvim-debugger.watch-widget.info"] = "DBG Watch Info",
-    ["nvim-debugger.output-widget.stdout"] = "DBG Stdout",
-    ["nvim-debugger.output-widget.stderr"] = "DBG Stderr",
+    ["nvim-debugger.output-widget"] = "DBG Output",
 }
 
 function M.filetype()

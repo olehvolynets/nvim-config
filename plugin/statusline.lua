@@ -38,6 +38,7 @@ local components = {
     " ",
 }
 
+vim.api.nvim_set_hl(0, "StatusLine_fileinfo", { bg = "#0C0C0C", bold = true })
 vim.api.nvim_set_hl(0, "StatusLine_separator", { fg = "#686868" })
 -- vim.api.nvim_set_hl(0, "StatusLine_linenr", { link = "Normal" })
 -- vim.api.nvim_set_hl(0, "StatusLine_colnr", { fg = "#787878" })
@@ -61,22 +62,6 @@ vim.iter(ipairs(components)):map(function(key, item)
     end
 end):totable()
 
-local stl_render = coroutine.create(function(args)
-    while true do
-        local event = args.event == "User" and ("%s %s"):format(args.event, args.match) or args.event
-        for _, idx in ipairs(events[event]) do
-            if components[idx].async then
-                local child = components[idx].stl()
-                coroutine.resume(child, pieces, idx)
-            else
-                pieces[idx] = stl_format(components[idx].name, components[idx].stl(args))
-            end
-        end
-        vim.opt.stl = table.concat(pieces)
-        args = coroutine.yield()
-    end
-end)
-
 vim.tbl_map(function(e)
     local tmp = e
     local pattern
@@ -90,9 +75,16 @@ vim.tbl_map(function(e)
         pattern = pattern,
         callback = function(args)
             vim.schedule(function()
-                local ok, res = coroutine.resume(stl_render, args)
+                local ok, err = pcall(function()
+                    local event = args.event == "User" and ("%s %s"):format(args.event, args.match) or args.event
+                    for _, idx in ipairs(events[event]) do
+                        pieces[idx] = stl_format(components[idx].name, components[idx].stl(args))
+                    end
+                    vim.opt.stl = table.concat(pieces)
+                end)
+
                 if not ok then
-                    vim.notify("[StatusLine] render failed: " .. res, vim.log.levels.ERROR)
+                    vim.notify("[StatusLine] render failed: " .. err, vim.log.levels.ERROR)
                 end
             end)
         end,
