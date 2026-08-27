@@ -104,6 +104,7 @@ require("vim._core.ui2").enable({
             default = "cmd",
             progress = "msg",
             bufwrite = "cmd",
+            ["dir.settin-toggle"] = "msg",
         },
     }
 })
