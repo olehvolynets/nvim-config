@@ -51,9 +51,6 @@ vim.lsp.enable({
     "zls",
 })
 
--- vim.lsp.log.set_level("trace")
-vim.lsp.inlay_hint.enable(true)
-
 local lsp_attach_group = vim.api.nvim_create_augroup("sagg0t.LspAttach", { clear = true })
 local completion_group = vim.api.nvim_create_augroup("sagg0t.completion", { clear = true })
 
@@ -98,6 +95,13 @@ _G.sagg0t_foldtext = function(lnum)
     return chunks
 end
 
+-- vim.lsp.log.set_level(vim.lsp.log.levels.TRACE)
+
+-- vim.lsp.inlay_hint.enable(true)
+vim.lsp.linked_editing_range.enable(true)
+vim.lsp.document_color.enable(true, nil, { style = "virtual" })
+vim.lsp.codelens.enable(true)
+
 vim.api.nvim_create_autocmd("LspAttach", {
     group = lsp_attach_group,
     callback = function(event)
@@ -123,21 +127,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
         if client:supports_method(ms.textDocument_foldingRange) then
             local win = vim.api.nvim_get_current_win()
-            vim.wo[win][0].foldmethod = "expr"
             vim.wo[win][0].foldexpr = "v:lua.vim.lsp.foldexpr()"
             vim.wo[win][0].foldtext = "v:lua.sagg0t_foldtext()"
-        end
-
-        if client:supports_method(ms.textDocument_linkedEditingRange) then
-            vim.lsp.linked_editing_range.enable(true, { client_id = client.id })
-        end
-
-        if client:supports_method(ms.textDocument_documentColor) then
-            vim.lsp.document_color.enable(true, { client_id = client.id }, { style = "virtual" })
-        end
-
-        if client:supports_method(ms.textDocument_codeLens) then
-            vim.lsp.codelens.enable(true, { client_id = client.id })
         end
 
         if client:supports_method(ms.textDocument_documentHighlight) then
