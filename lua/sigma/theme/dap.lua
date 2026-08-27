@@ -2,20 +2,23 @@ local c = require("sigma.colors")
 local u = require("sigma.util")
 
 return {
-    DAPBreakpointLine            = { bg = u.darken(c.severity.error, 0.45) },
-    DAPLogpointLine              = { bg = u.darken(c.overlay.fg, 0.85) },
-    DAPBreakpointConditionalLine = { bg = u.darken(c.severity.warning, 0.45) },
-    DAPBreakpointRejectedLine    = { underdashed = true, sp = c.severity.error },
-    DAPBreakpointDisabledLine    = { underdashed = true, sp = c.severity.hint },
+    ["DBG.BreakpointLine"]            = { bg = u.darken(c.severity.error, 0.45) },
+    ["DBG.LogpointLine"]              = { bg = u.darken(c.overlay.fg, 0.85) },
+    ["DBG.BreakpointConditionalLine"] = { bg = u.darken(c.severity.warning, 0.45) },
+    ["DBG.BreakpointRejectedLine"]    = { underdashed = true, sp = c.severity.error },
+    ["DBG.BreakpointDisabledLine"]    = { underdashed = true, sp = c.severity.hint },
 
     -- ["DBG.FrameStopLine"]        = { bg = u.darken(c.boolean, 0.45) },
     -- ["DBG.FrameStopLine"]        = { overline = true, sp = c.boolean }, -- overline doesn't respoct "sp"
-    DAPFrameStopVirtText         = { fg = c.boolean },
+    ["DBG.FrameStopVirtText"]         = { fg = c.boolean },
     -- ["DBG.FocusedFrameLine"]     = { overline = true, sp = c.boolean },
+
+    ["DBG.FloatNormal"] = { bg = c.overlay.bgTinted },
+    ["DBG.FloatBorder"] = { bg = c.overlay.bgTinted },
 
     -- Legacy:
     -- DapBreakpoint                = { fg = c.severity.error },
-    -- DapBreakpointLine            = { bg = u.darken(c.severity.error, 0.45) },
+    DapBreakpointLine            = { bg = u.darken(c.severity.error, 0.45) },
     -- DapBreakpointCondition       = { fg = c.severity.warning },
     -- DapBreakpointConditionLine   = { bg = u.darken(c.severity.warning, 0.45) },
     -- DapBreakpointRejected        = { fg = c.severity.error },
@@ -23,7 +26,7 @@ return {
     -- DapLogPoint                  = { fg = c.severity.info },
     -- DapLogPointLine              = { bg = u.darken(c.overlay.fg, 0.85) },
     -- DapStopped                   = { fg = c.severity.hint },
-    -- DapStoppedLine               = { bg = u.darken(c.boolean, 0.45), underline = true, sp = c.boolean },
+    DapStoppedLine               = { bg = u.darken(c.boolean, 0.45), underline = true, sp = c.boolean },
 
     -- DapUINormal                  = { link = "NormalFloat" },
     -- DapUIVariable                = { link = "@variable" },

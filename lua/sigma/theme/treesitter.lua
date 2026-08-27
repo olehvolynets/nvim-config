@@ -18,7 +18,7 @@ return {
     ["@punctuation.special"] = { fg = c.operator, italic = true },
     ["@string.regexp"] = { fg = c.stringSpecial },
     ["@string.special.symbol"] = { fg = c.attribute },
-    ["@tag.attribute"] = { fg = c.attribue },
+    ["@tag.attribute"] = { fg = c.propertyAlt },
     ["@tag.delimiter"] = { fg = c.comment },
     ["@type.builtin"] = { link = "@type" },
     ["@type.qualifier"] = { link = "StorageClass" },

@@ -43,7 +43,8 @@ return {
     CursorLineNr = { fg = c.overlay.accent, bg = c.overlay.bg },
     CursorLineFold = { link = "FoldColumn" },
     CursorLineSign = { link = "SignColumn" },
-    MatchParen = { fg = c.keyword, bold = true, underline = true },
+    -- MatchParen = { fg = c.keyword, bold = true, underline = true },
+    MatchParen = { fg = c.bg, bg = c.fg },
     ModeMsg = { fg = c.fg, bold = true },
     MsgArea = { fg = c.fg, bg = c.overlay.bg },
     MsgSeparator = { fg = c.overlay.bg, bg = c.overlay.bg },
@@ -73,7 +74,7 @@ return {
     QuickFixLine = { bold = true },
 
     Search = { fg = c.bg, bg = c.search, bold = true },
-    CurSearch = { fg = c.bg, bg = c.search3, bold = true },
+    CurSearch = { fg = c.bg, bg = c.replace, bold = true },
     IncSearch = { link = "Search" },
     Substitute = { fg = c.bg, bg = c.keyword, bold = true },
 
