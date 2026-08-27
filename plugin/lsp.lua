@@ -109,11 +109,11 @@ vim.api.nvim_create_autocmd("LspAttach", {
         if not client then return end
 
         local map = function(keys, func, desc)
-            vim.keymap.set("n", keys, func, { buf= event.buf, desc = desc })
+            vim.keymap.set("n", keys, func, { buf = event.buf, desc = desc })
         end
         map("gd", vim.lsp.buf.definition, "Goto Definition")
         map("gD", vim.lsp.buf.declaration, "Goto Declaration")
-        map("grf", vim.lsp.buf.format, "Format document")
+        vim.keymap.set({ "n", "v" }, "grf", vim.lsp.buf.format, { buf = event.buf, desc = "Format document" })
 
         -- if client:supports_method(ms.textDocument_formatting) then
         --     vim.api.nvim_create_autocmd("BufWritePre", {
