@@ -21,6 +21,13 @@ function M.fileinfo()
                 file = vim.fs.basename(rel_path)
             end
 
+            if dir == "./" then
+                dir = ""
+            end
+            if file == "." then
+                file = "[No Name]"
+            end
+
             local path_format = string.format("%%#Directory#%s%%*%s", dir, file)
 
             return path_format .. " %h%w%m%r"
