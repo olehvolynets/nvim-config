@@ -7,6 +7,7 @@ return {
     ["@keyword.exception"] = { link = "Exception" },
     ["@keyword.repeat"] = { link = "Repeat" },
     ["@keyword.return"] = { fg = c.keyword, bold = true },
+    ["@conditional"] = { link = "Conditional" },
     ["@comment.note"] = { link = "DiagnosticHint" },
     ["@comment.todo"] = { link = "DiagnosticInfo" },
     ["@comment.documentation"] = { fg = c.commentHighlight },

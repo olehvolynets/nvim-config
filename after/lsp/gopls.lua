@@ -7,6 +7,9 @@ return {
             gofumpt = true,
             staticcheck = true,
             semanticTokens = true,
+            semanticTokenTypes = {
+                string = false,
+            },
             usePlaceholders = true,
             vulncheck = "Imports",
             analyses = {
@@ -14,6 +17,7 @@ return {
                 unusedvariable = true,
                 unreachable = true,
                 useany = true,
+                ST1000 = false,
             },
             codelenses = {
                 generate = true,
