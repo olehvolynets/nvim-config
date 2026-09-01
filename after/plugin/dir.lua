@@ -3,8 +3,20 @@ local api, fs, uv = vim.api, vim.fs, vim.uv
 local augroup = api.nvim_create_augroup("sagg0t.dir")
 local ns = api.nvim_create_namespace("sagg0t.dir")
 
-local hidden_visible = false
+local show_all = false
 local HIDE_TOGGLE_MSG_ID = "sagg0t.dir.hidden_toggle"
+
+---@alias sagg0t.dir.MarkType "copy" | "move"
+
+---Path to mark type.
+---@type table<string, sagg0t.dir.MarkType>
+local marked_files = {}
+
+---@param name string
+---@return boolean
+local function is_hidden_file(name)
+    return vim.startswith(name, ".")
+end
 
 api.nvim_create_autocmd("User", {
     group = augroup,
@@ -14,7 +26,7 @@ api.nvim_create_autocmd("User", {
 
         local visible_items = {} ---@type string[]
         for _, name in ipairs(fnames) do
-            if hidden_visible or (not vim.startswith(name, ".")) then
+            if show_all or (not is_hidden_file(name)) then
                 table.insert(visible_items, name)
             end
         end
@@ -22,6 +34,84 @@ api.nvim_create_autocmd("User", {
         api.nvim_buf_set_lines(args.buf, 0, -1, true, visible_items)
     end,
     desc = "control displayed items",
+})
+
+
+local glyph = { fifo = "|", socket = "=", char = "%", block = "#", }
+
+api.nvim_set_decoration_provider(ns, {
+    on_win = function(_, _, buf)
+        return vim.bo[buf].filetype == "directory"
+    end,
+    on_range = function(_, _, buf, row)
+        local dir = api.nvim_buf_get_name(buf)
+        local name = api.nvim_buf_get_lines(buf, row, row + 1, true)[1]
+        local path = fs.joinpath(dir, (name:gsub("/$", "")))
+        local stat = uv.fs_lstat(path) or {}
+
+        local exe = stat.type == "file" and bit.band(stat.mode, tonumber("111", 8)) ~= 0
+        local char = glyph[stat.type] or (exe and "*")
+        if char then
+            api.nvim_buf_set_extmark(buf, ns, row, #name, {
+                virt_text = { { char, "Dimmed" } },
+                virt_text_pos = "overlay",
+                hl_mode = "combine",
+                ephemeral = true,
+            })
+        end
+
+        if stat.type == "link" then
+            local target = uv.fs_readlink(path) or "?"
+            api.nvim_buf_set_extmark(buf, ns, row, 0, {
+                virt_text = { { "-> " .. target, "Dimmed" } },
+                virt_text_pos = "eol",
+                ephemeral = true,
+                hl_mode = "combine",
+            })
+        end
+
+        if stat.type == "file" then
+            local hl_group ---@type string?
+            if string.upper(name) == "LICENSE" then
+                hl_group = "DirLicense"
+            elseif string.upper(name) == "README.MD" then
+                hl_group = "DirReadme"
+            elseif is_hidden_file(name) then
+                hl_group = "DirHiddenFile"
+            end
+
+            if hl_group then
+                api.nvim_buf_set_extmark(buf, ns, row, 0, {
+                    end_col = #name,
+                    hl_group = hl_group,
+                    ephemeral = true,
+                })
+            end
+        end
+
+        if marked_files[path] == "move" then
+            api.nvim_buf_set_extmark(buf, ns, row, 0, {
+                end_col = #name,
+                hl_group = "DirMoving",
+                ephemeral = true,
+            })
+            api.nvim_buf_set_extmark(buf, ns, row, 0, {
+                virt_text = { { " ", "DirMovingMark" } },
+                virt_text_pos = "eol",
+                ephemeral = true,
+                hl_mode = "combine",
+            })
+        elseif marked_files[path] == "copy" then
+            api.nvim_buf_set_extmark(buf, ns, row, 0, {
+                virt_text = { { " ", "DirCopyingMark" } },
+                virt_text_pos = "eol",
+                ephemeral = true,
+                hl_mode = "combine",
+            })
+        end
+
+        return row + 1
+    end,
 })
 
 ---@param buf integer
@@ -56,11 +146,49 @@ local function to_abs_path(rel_target, root)
     return target
 end
 
+---@param src string
+---@param dest string
+---@return string? error
+local function move_file(src, dest)
+    local already_exists = uv.fs_stat(dest)
+    if already_exists then
+        local choice = vim.fn.confirm(
+            string.format("File %s already exists. Overwrite?", dest),
+            "&yes\n&No",
+            2
+        )
+
+        if choice ~= 1 then return end
+    end
+
+    -- overwrites if `dest` already exists
+    local ok, err = uv.fs_rename(src, dest)
+    if not ok then
+        return err
+    end
+end
+
 api.nvim_create_autocmd("FileType", {
     pattern = "directory",
     group = augroup,
     callback = function(args)
         vim.keymap.set("n", "-", "<Plug>(nvim-dir-up)", { silent = true, desc = "Go to parent directory" })
+
+        vim.keymap.set("n", "<C-h>", function()
+            show_all = not show_all
+            require("nvim.dir")._reload(args.buf)
+
+            local msg ---@type string
+            if show_all then
+                msg = "Showing hidden files"
+            else
+                msg = "Hiding hidden files "
+            end
+            api.nvim_echo({ { msg, "DiagnosticHint" } }, false, {
+                id = HIDE_TOGGLE_MSG_ID,
+                kind = "dir.settin-toggle",
+            })
+        end, { buf = args.buf, desc = "Toggle [h]idden files visibility" })
 
         vim.keymap.set("n", "a", function()
             local root, abs_dir, rel_dir = get_paths(args.buf)
@@ -184,106 +312,83 @@ api.nvim_create_autocmd("FileType", {
             }, function(input)
                 if not input then return end
 
-                local dest = to_abs_path(input, root)
-
-                local already_exists = uv.fs_stat(dest)
-                if already_exists then
-                    local choice = vim.fn.confirm(
-                        string.format("File %s already exists. Overwrite?", dest),
-                        "&yes\n&No",
-                        2
-                    )
-
-                    if choice ~= 1 then return end
-                end
-
                 local origin = fs.joinpath(abs_dir, item)
                 origin = fs.normalize(origin)
-                -- overwrites if `dest` already exists
-                local ok, err = uv.fs_copyfile(origin, dest)
-                if not ok then
-                    vim.notify("Failed to move a file: " .. err, vim.log.levels.ERROR)
+                local dest = to_abs_path(input, root)
+
+                local err = move_file(origin, dest)
+                if err then
+                    vim.notify("Failed to move: " .. err, vim.log.levels.ERROR)
                     return
                 end
-
-                fs.rm(origin)
 
                 require("nvim.dir")._reload(args.buf)
             end)
         end, { buf = args.buf, desc = "Move item ([r]ename)" })
 
-        vim.keymap.set("n", "<C-h>", function()
-            hidden_visible = not hidden_visible
-            require("nvim.dir")._reload(args.buf)
-
-            local msg ---@type string
-            if hidden_visible then
-                msg = "Showing hidden files"
-            else
-                msg = "Hiding hidden files "
+        vim.keymap.set("n", "x", function()
+            local dir = api.nvim_buf_get_name(args.buf)
+            local item = api.nvim_get_current_line()
+            if vim.endswith(item, "/") then
+                item = string.sub(item, 1, -2)
             end
-            api.nvim_echo({ { msg, "DiagnosticHint" } }, false, {
-                id = HIDE_TOGGLE_MSG_ID,
-                kind = "dir.settin-toggle",
-            })
-        end, { buf = args.buf, desc = "Toggle [h]idden files visibility" })
+
+            local path = fs.joinpath(dir, item)
+            if marked_files[path] == "move" then
+                marked_files[path] = nil
+            else
+                marked_files[path] = "move"
+            end
+
+            api.nvim__redraw({ buf = args.buf, valid = true })
+        end, { buf = args.buf, desc = "Mark file for move" })
+
+        vim.keymap.set("n", "c", function()
+            local dir = api.nvim_buf_get_name(args.buf)
+            local item = api.nvim_get_current_line()
+            if vim.endswith(item, "/") then
+                item = string.sub(item, 1, -2)
+            end
+
+            local path = fs.joinpath(dir, item)
+            if marked_files[path] == "copy" then
+                marked_files[path] = nil
+            else
+                marked_files[path] = "copy"
+            end
+
+            api.nvim__redraw({ buf = args.buf, valid = true })
+        end, { buf = args.buf, nowait = true, desc = "Mark file for copy" })
+
+        vim.keymap.set("n", "p", function()
+            local root, dir, _ = get_paths(args.buf)
+
+            for path, mode in pairs(marked_files) do
+                local fname = fs.basename(path)
+                local dest = fs.joinpath(dir, fname)
+
+                if mode == "move" then
+                    local err = move_file(path, dest)
+                    if err then
+                        local rel_path = fs.relpath(root, path) or path
+                        vim.notify(string.format("Failed to move %s : %s", rel_path, err), vim.log.levels.ERROR)
+                    end
+                elseif mode == "copy" then
+                    vim.notify("copy is not implemented", vim.log.levels.ERROR)
+                    -- local ok, err = uv.fs_copyfile(path, dest)
+                    -- if not ok then
+                    --     local rel_path = fs.relpath(root, path) or path
+                    --     vim.notify(string.format("Failed to copy %s : %s", rel_path, err), vim.log.levels.ERROR)
+                    -- end
+                else
+                    error("unknown mode: " .. vim.inspect(mode))
+                end
+
+                marked_files[path] = nil
+            end
+
+            require("nvim.dir")._reload(args.buf)
+        end, { buf = args.buf, desc = "Past marked files" })
     end,
     desc = "",
-})
-
-
-local glyph = { fifo = "|", socket = "=", char = "%", block = "#", }
-
-api.nvim_set_decoration_provider(ns, {
-    on_win = function(_, _, buf)
-        return vim.bo[buf].filetype == "directory"
-    end,
-    on_range = function(_, _, buf, row)
-        local dir = api.nvim_buf_get_name(buf)
-        local name = api.nvim_buf_get_lines(buf, row, row + 1, true)[1]
-        local path = fs.joinpath(dir, (name:gsub("/$", "")))
-        local stat = uv.fs_lstat(path) or {}
-
-        local exe = stat.type == "file" and bit.band(stat.mode, tonumber("111", 8)) ~= 0
-        local char = glyph[stat.type] or (exe and "*")
-        if char then
-            api.nvim_buf_set_extmark(buf, ns, row, #name, {
-                virt_text = { { char, "Dimmed" } },
-                virt_text_pos = "overlay",
-                ephemeral = true,
-            })
-        end
-
-        if stat.type == "link" then
-            local target = uv.fs_readlink(path) or "?"
-            api.nvim_buf_set_extmark(buf, ns, row, 0, {
-                virt_text = { { "-> " .. target, "Dimmed" } },
-                virt_text_pos = "eol",
-                ephemeral = true,
-                hl_mode = "combine",
-            })
-        end
-
-        if vim.startswith(name, ".") and stat.type == "file" then
-            api.nvim_buf_set_extmark(buf, ns, row, 0, {
-                end_col = #name,
-                hl_group = "DirHiddenFile",
-                ephemeral = true,
-            })
-        elseif string.upper(name) == "LICENSE" then
-            api.nvim_buf_set_extmark(buf, ns, row, 0, {
-                end_col = #name,
-                hl_group = "DirLicense",
-                ephemeral = true,
-            })
-        elseif string.upper(name) == "README.MD" then
-            api.nvim_buf_set_extmark(buf, ns, row, 0, {
-                end_col = #name,
-                hl_group = "DirReadme",
-                ephemeral = true,
-            })
-        end
-
-        return row + 1
-    end,
 })
