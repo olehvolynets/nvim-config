@@ -37,7 +37,7 @@ function M.fileinfo()
             bold = true,
             bg = stl_bg,
         },
-        event = { "BufEnter" },
+        event = { "BufEnter", "DirChanged" },
     }
 end
 
