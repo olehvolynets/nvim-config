@@ -21,6 +21,7 @@ return {
     -- search = "#6bae86",
     -- search2 = "#57d7e3",
     search = "#c0fe04",
+    search2 = "#5200ff",
     replace = "#CC6775",
 
     comment =  "#686868",

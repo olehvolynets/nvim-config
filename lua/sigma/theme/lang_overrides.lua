@@ -3,7 +3,7 @@ local c = require("sigma.colors")
 return {
     htmlTag = { fg = c.comment },
     htmlEndTag = { link = "htmlTag" },
-    htmlTagName = { fg = c.tag },
+    htmlTagName = { link = "Tag" },
     htmlArg = { fg = c.propertyAlt },
 
     rubyInstanceVariable = { link = "@variable.member.ruby" },

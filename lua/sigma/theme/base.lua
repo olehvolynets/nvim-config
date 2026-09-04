@@ -3,9 +3,11 @@ local c = require("sigma.colors")
 return {
     ColorColumn = { bg = c.overlay.selection },
     Conceal = { link = "Comment" },
-    Cursor = { bg = c.white },
+    Cursor = { bg = c.white, fg = c.bg },
     lCursor = { link = "Cursor" },
     CursorIM = { link = "Cursor" },
+    MCursor = { bg = c.search2, fg = c.search },
+    MCursorVisual = { link = "MCursor" },
     CursorLine = { bg = c.invisible },
     CursorColumn = { link = "CursorLine" },
 
@@ -44,7 +46,7 @@ return {
     CursorLineFold = { link = "FoldColumn" },
     CursorLineSign = { link = "SignColumn" },
     -- MatchParen = { fg = c.keyword, bold = true, underline = true },
-    MatchParen = { fg = c.bg, bg = c.fg },
+    MatchParen = { bg = c.commentHighlight },
     ModeMsg = { fg = c.fg, bold = true },
     MsgArea = { fg = c.fg, bg = c.overlay.bg },
     MsgSeparator = { fg = c.overlay.bg, bg = c.overlay.bg },
@@ -73,7 +75,7 @@ return {
 
     QuickFixLine = { bold = true },
 
-    Search = { fg = c.bg, bg = c.search, bold = true },
+    Search = { fg = c.black, bg = c.search, bold = true },
     CurSearch = { fg = c.bg, bg = c.replace, bold = true },
     IncSearch = { link = "Search" },
     Substitute = { fg = c.bg, bg = c.keyword, bold = true },
@@ -138,7 +140,7 @@ return {
 
     Special = { fg = c.stringSpecial },
     SpecialChar = { fg = c.stringSpecial },
-    Tag = { fg = c.tag },
+    Tag = { fg = c.type },
     Delimiter = { link = "Operator" },
     SpecialComment = { fg = c.comment, bold = true },
     Debug = { fg = c.keyword, italic = true, underline = true },
