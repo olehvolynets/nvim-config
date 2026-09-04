@@ -360,8 +360,10 @@ api.nvim_create_autocmd("FileType", {
             api.nvim__redraw({ buf = args.buf, valid = true })
         end, { buf = args.buf, nowait = true, desc = "Mark file for copy" })
 
-        vim.keymap.set("n", "p", function()
+        vim.keymap.set("n", { "p", "P" }, function()
             local root, dir, _ = get_paths(args.buf)
+
+            local ex_dirs = {} ---@type table<string, boolean?>
 
             for path, mode in pairs(marked_files) do
                 local fname = fs.basename(path)
@@ -384,7 +386,22 @@ api.nvim_create_autocmd("FileType", {
                     error("unknown mode: " .. vim.inspect(mode))
                 end
 
+                local ex_dir = fs.dirname(path)
+                ex_dir = ex_dir == "." and "/" or (ex_dir .. "/")
+                ex_dirs[ex_dir] = true
+
                 marked_files[path] = nil
+            end
+
+            local bufs = api.nvim_list_bufs()
+            for ex_dir, _ in pairs(ex_dirs) do
+                for _, buf in ipairs(bufs) do
+                    if api.nvim_buf_is_valid(buf) and api.nvim_buf_is_loaded(buf)
+                        and api.nvim_buf_get_name(buf) == ex_dir then
+
+                        require("nvim.dir")._reload(buf)
+                    end
+                end
             end
 
             require("nvim.dir")._reload(args.buf)
